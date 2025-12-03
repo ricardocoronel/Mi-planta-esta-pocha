@@ -1,32 +1,11 @@
 import { BOTANIST_PROMPT, PlantAnalysisResult } from "../types";
-import { fileToBase64 } from "./geminiService";
-
-const getOpenAIKey = (): string | undefined => {
-  // 1. Try Vite (import.meta.env)
-  try {
-    // @ts-ignore
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-      // @ts-ignore
-      const val = import.meta.env.API_KEY_OPENAI || import.meta.env.VITE_API_KEY_OPENAI || import.meta.env.OPENAI_API_KEY || import.meta.env.VITE_OPENAI_API_KEY;
-      if (val) return val;
-    }
-  } catch (e) {}
-
-  // 2. Try Standard (process.env)
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env.API_KEY_OPENAI || process.env.OPENAI_API_KEY;
-    }
-  } catch (e) {}
-
-  return undefined;
-};
+import { getEnv, fileToBase64 } from "../utils";
 
 export const analyzeWithOpenAI = async (
   imageFile: File,
   additionalContext?: string
 ): Promise<PlantAnalysisResult> => {
-  const API_KEY = getOpenAIKey();
+  const API_KEY = getEnv(['API_KEY_OPENAI', 'OPENAI_API_KEY']);
 
   if (!API_KEY) {
     throw new Error("OpenAI API Key is missing. Please configure API_KEY_OPENAI.");

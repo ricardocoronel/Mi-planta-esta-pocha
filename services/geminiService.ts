@@ -1,49 +1,12 @@
 import { GoogleGenAI } from "@google/genai";
 import { BOTANIST_PROMPT, PlantAnalysisResult } from "../types";
-
-/**
- * Converts a File object to a Base64 string.
- */
-export const fileToBase64 = (file: File): Promise<string> => {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result as string;
-      // Remove the Data-URL prefix (e.g., "data:image/jpeg;base64,")
-      const base64 = result.split(',')[1];
-      resolve(base64);
-    };
-    reader.onerror = (error) => reject(error);
-    reader.readAsDataURL(file);
-  });
-};
-
-const getGeminiKey = (): string | undefined => {
-  // 1. Try Vite (import.meta.env)
-  try {
-    // @ts-ignore
-    if (typeof import.meta !== 'undefined' && import.meta.env) {
-      // @ts-ignore
-      const val = import.meta.env.API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.GOOGLE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY;
-      if (val) return val;
-    }
-  } catch (e) {}
-
-  // 2. Try Standard (process.env)
-  try {
-    if (typeof process !== 'undefined' && process.env) {
-      return process.env.API_KEY || process.env.GOOGLE_API_KEY;
-    }
-  } catch (e) {}
-
-  return undefined;
-};
+import { getEnv, fileToBase64 } from "../utils";
 
 export const analyzeWithGemini = async (
   imageFile: File,
   additionalContext?: string
 ): Promise<PlantAnalysisResult> => {
-  const API_KEY = getGeminiKey();
+  const API_KEY = getEnv(['API_KEY', 'GOOGLE_API_KEY']);
 
   if (!API_KEY) {
     throw new Error("Gemini API Key is missing. Please configure API_KEY.");
