@@ -18,11 +18,32 @@ export const fileToBase64 = (file: File): Promise<string> => {
   });
 };
 
+const getGeminiKey = (): string | undefined => {
+  // 1. Try Vite (import.meta.env)
+  try {
+    // @ts-ignore
+    if (typeof import.meta !== 'undefined' && import.meta.env) {
+      // @ts-ignore
+      const val = import.meta.env.API_KEY || import.meta.env.VITE_API_KEY || import.meta.env.GOOGLE_API_KEY || import.meta.env.VITE_GOOGLE_API_KEY;
+      if (val) return val;
+    }
+  } catch (e) {}
+
+  // 2. Try Standard (process.env)
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      return process.env.API_KEY || process.env.GOOGLE_API_KEY;
+    }
+  } catch (e) {}
+
+  return undefined;
+};
+
 export const analyzeWithGemini = async (
   imageFile: File,
   additionalContext?: string
 ): Promise<PlantAnalysisResult> => {
-  const API_KEY = process.env.API_KEY;
+  const API_KEY = getGeminiKey();
 
   if (!API_KEY) {
     throw new Error("Gemini API Key is missing. Please configure API_KEY.");
